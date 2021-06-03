@@ -11,6 +11,7 @@ using namespace std;
 Int_t getVFAT(Int_t etaP, Int_t chN, Float_t locX){
     switch((chN % 2)){
       case(1): //even chambers == long
+	//if((chN % 2) == 0){
         switch(etaP){
             case(1):
                 if(locX < -7.08802) { return 7;  break; }
@@ -44,8 +45,10 @@ Int_t getVFAT(Int_t etaP, Int_t chN, Float_t locX){
                 if(locX < -3.98899) { return 0;  break; }
                 if(locX >= -3.98899 && locX <=  3.98899) { return 8; break; }
                 if(locX >  3.98899) { return 16; break; }
-           default: return -1;
+      //      default: return -1;
         }
+//}//aggiunta per chiudere l'if
+//	if((chN % 2) == 1){
         case(0): //odd chambers == short
         switch(etaP){
             case(1):
@@ -86,6 +89,9 @@ Int_t getVFAT(Int_t etaP, Int_t chN, Float_t locX){
      }
 }
 
+
+
+
 //initialise output minitree
 void outTreeInit(TTree *tree_, Int_t &run, Int_t &lumi, Int_t &evt, Int_t cout[2][2][36]){
     tree_->Branch("run", &run);
@@ -95,10 +101,10 @@ void outTreeInit(TTree *tree_, Int_t &run, Int_t &lumi, Int_t &evt, Int_t cout[2
 }
 
 //initialise output minitree
-void outTreeLumiInit(TTree *tree_, Int_t &nEvents, Int_t &lumi, Int_t nHits[2][2][36][384]){
+void outTreeLumiInit(TTree *tree_, Int_t &nEvents, Int_t &lumi, Int_t nHits[2][2][36][8][384]){
     tree_->Branch("nEvents", &nEvents);
     tree_->Branch("lumi", &lumi);
-    tree_->Branch("nHits", nHits, "nHits[2][2][36][384]/I");
+    tree_->Branch("nHits", nHits, "nHits[2][2][36][8][384]/I");
 }
 
 void analysisClass::Loop()
@@ -128,6 +134,7 @@ void analysisClass::Loop()
 //   //    fChain->GetEntry(jentry);       //read all branches
 //   //by  b_branchname->GetEntry(ientry); //read only this branch
 
+
  // Creation of output file & final tree
    TString root_fileName = fileName;
    TFile *fout = new TFile(root_fileName, "RECREATE");
@@ -143,15 +150,15 @@ void analysisClass::Loop()
 
    vector<Int_t> lumi_list;
    Int_t nevents = 0;
-   Int_t nhits[2][2][36][384] = {0};
-   Float_t hit_rate[2][2][36][384] = {0.};
-   Float_t temp_nhits[2][2][36][384] = {0.};
+   Int_t nhits[2][2][36][8][384] = {0};
+   Float_t hit_rate[2][2][36][8][384] = {0.};
+   Float_t temp_nhits[2][2][36][8][384] = {0.};
    Int_t VFAT_position[384] = {0};
-
+   
 
 //   TFile saving("plots.root","recreate")
 
-
+/*
    std::vector<TH3F*> myHisto_neg_l1;
    std::vector<TH3F*> myHisto_neg_l2;
    std::vector<TH3F*> myHisto_pos_l1;
@@ -159,15 +166,33 @@ void analysisClass::Loop()
 
 
   for(int i=0;i<36;i++){
-         TH3F *h1 = new TH3F(Form("h1%d",i), Form("Hit rate per lumisection, Region = -1, Layer = 1, Chamber = %d", i+1), 384, 0, 385, 24, 0, 25, 100, 0, 10);
+         TH3F *h1 = new TH3F(Form("h_neg_l1_%d",i+1), Form("Hit rate per lumisection, Region = -1, Layer = 1, Chamber = %d", i+1), 8, 0, 9, 384, 0, 385, 100, 0, 0.0006);
            myHisto_neg_l1.push_back(h1);
-         TH3F *h2 = new TH3F(Form("h2%d",i), Form("Hit rate per lumisection, Region = -1, Layer = 2, Chamber = %d", i+1), 384, 0, 385, 24, 0, 25, 100, 0, 10);
+         TH3F *h2 = new TH3F(Form("h_neg_l2_%d",i+1), Form("Hit rate per lumisection, Region = -1, Layer = 2, Chamber = %d", i+1), 8, 0, 9, 384, 0, 385, 100, 0, 0.0006);
            myHisto_neg_l2.push_back(h2);
-         TH3F *h3 = new TH3F(Form("h3%d",i), Form("Hit rate per lumisection, Region = +1, Layer = 1, Chamber = %d", i+1), 384, 0, 385, 24, 0, 25, 100, 0, 10);
+         TH3F *h3 = new TH3F(Form("h_pos_l1_%d",i+1), Form("Hit rate per lumisection, Region = +1, Layer = 1, Chamber = %d", i+1), 8, 0, 9, 384, 0, 385, 100, 0, 0.0006);
            myHisto_pos_l1.push_back(h3);
-         TH3F *h4 = new TH3F(Form("h4%d",i), Form("Hit rate per lumisection, Region = +1, Layer = 2, Chamber = %d", i+1), 384, 0, 385, 24, 0, 25, 100, 0, 10);
+         TH3F *h4 = new TH3F(Form("h_pos_l2_%d",i+1), Form("Hit rate per lumisection, Region = +1, Layer = 2, Chamber = %d", i+1), 8, 0, 9, 384, 0, 385, 100, 0, 0.0006);
+           myHisto_pos_l2.push_back(h4);
+}*/
+
+   std::vector<TH2F*> myHisto_neg_l1;
+   std::vector<TH2F*> myHisto_neg_l2;
+   std::vector<TH2F*> myHisto_pos_l1;
+   std::vector<TH2F*> myHisto_pos_l2;
+
+
+  for(int i=0;i<36;i++){
+         TH2F *h1 = new TH2F(Form("h_neg_l1_%d",i+1), Form("Hit rate per lumisection, Region = -1, Layer = 1, Chamber = %d", i+1), 384, 0, 385, 100, 0, 0.0006);
+           myHisto_neg_l1.push_back(h1);
+         TH2F *h2 = new TH2F(Form("h_neg_l2_%d",i+1), Form("Hit rate per lumisection, Region = -1, Layer = 2, Chamber = %d", i+1), 384, 0, 385, 100, 0, 0.0006);
+           myHisto_neg_l2.push_back(h2);
+         TH2F *h3 = new TH2F(Form("h_pos_l1_%d",i+1), Form("Hit rate per lumisection, Region = +1, Layer = 1, Chamber = %d", i+1), 384, 0, 385, 100, 0, 0.0006);
+           myHisto_pos_l1.push_back(h3);
+         TH2F *h4 = new TH2F(Form("h_pos_l2_%d",i+1), Form("Hit rate per lumisection, Region = +1, Layer = 2, Chamber = %d", i+1), 384, 0, 385, 100, 0, 0.0006);
            myHisto_pos_l2.push_back(h4);
 }
+
 
 // initialize output minitree
    outTreeInit(outTree, run, lumi, evt, counts);
@@ -186,7 +211,7 @@ void analysisClass::Loop()
        // if (Cut(ientry) < 0) continue;
        // per lumi analysis
       lumi_list.push_back(event_lumiBlock);
-   }
+   } 
 
     //new loop on events for per lumi analysis
        nentries = fChain->GetEntriesFast();
@@ -206,75 +231,118 @@ void analysisClass::Loop()
       for(int j=0; j<gemRecHit_region->size(); j++){
               if(isVerbose) cout<<j<<" RecHit region|chamber|layer= "<<gemRecHit_region->at(j)<<" | "<<gemRecHit_chamber->at(j)<<" | "<<gemRecHit_layer->at(j)<<endl;
               //loop on endcaps
-              for(int e=0; e<2; e++){
-                //loop on layers
-                for(int l=0; l<2 && gemRecHit_region->at(j) == region_index[e]; l++){
-                        //loop on chambers
-                        for(int c=0; c<36 && gemRecHit_layer->at(j) == layer_index[l]; c++){
-                                //loop on VFAT
-                                //for(int v=0; v<24 && gemRecHit_chamber->at(j) == c+1; v++){
-                                  //        if(getVFAT(gemRecHit_etaPartition->at(j), gemRecHit_chamber->at(j), gemRecHit_loc_x->at(j)) == v){
-                                          //loop on strips
-                                                for(int s=0; s<384 &&  gemRecHit_chamber->at(j) == c+1; s++){
-                                                        for(int cl=0; cl<gemRecHit_cluster_size->size() && gemRecHit_firstClusterStrip->at(j)==s; cl++){
-                                                                if((gemRecHit_firstClusterStrip->at(j) + gemRecHit_cluster_size->at(j) == s+cl)){
-                                                                        nhits[e][l][c][s+cl]++;
-                                                                        temp_nhits[e][l][c][s+cl]=static_cast<float>(nhits[e][l][c][s]);
-                                                                        float temp_nevents=static_cast<float>(nevents);
-                                                                        hit_rate[e][l][c][s+cl] = temp_nhits[e][l][c][s+cl] / temp_nevents;
-                                                                        VFAT_position[s+cl] = getVFAT(gemRecHit_etaPartition->at(j), gemRecHit_chamber->at(j), gemRecHit_loc_x->at(j));
-                                                                }
-                                                        }
-                                                }
-                                //      }
-                                 //}
-                        }
-                }
-            }
-        }
+ 	      for(int e=0; e<2; e++){
+		//loop on layers
+		for(int l=0; l<2 && gemRecHit_region->at(j) == region_index[e]; l++){
+			//loop on chambers
+	                for(int c=0; c<36 && gemRecHit_layer->at(j) == layer_index[l]; c++){
+				//loop on eta
+				for(int p=0; p<8 && gemRecHit_chamber->at(j) == c+1; p++){
+		                         if(gemRecHit_etaPartition->at(j) == p+1){
+					  //loop on strips
+				          	for(int s=0; s<384 &&  gemRecHit_chamber->at(j) == c+1; s++){
+							for(int cl=0; cl<gemRecHit_cluster_size->size() && gemRecHit_firstClusterStrip->at(j)==s; cl++){
+					 			if((gemRecHit_firstClusterStrip->at(j) + gemRecHit_cluster_size->at(j) == s+cl)){
+					 				nhits[e][l][c][p][s+cl]++;
+                                 					temp_nhits[e][l][c][p][s+cl]=static_cast<float>(nhits[e][l][c][p][s]);
+                                	 				float temp_nevents=static_cast<float>(nevents);
+				 					hit_rate[e][l][c][p][s+cl] = temp_nhits[e][l][c][p][s+cl] / temp_nevents;
+									VFAT_position[s+cl] = getVFAT(gemRecHit_etaPartition->at(j), gemRecHit_chamber->at(j), gemRecHit_loc_x->at(j));
+								}
+                     			 		}	
+                  			  	}
+              				}
+         			 }
+       			}
+		}
+	    }
+	}
       }else{//if(jentry>0 && event_lumiBlock != lumi_list.at(jentry-1)){
           if(isVerbose){
               cout<<"event_lumiBlock "<<event_lumiBlock<<" nEvents="<<nevents;
-              cout<<"hits in chamber [1][1][20][21] "<<nhits[1][1][20][21]<<endl; }
+              cout<<"hits in chamber [1][1][20][1][21] "<<nhits[1][1][20][1][21]<<endl; }
           lumi = event_lumiBlock;
           outLumiTree->Fill();
-          TFile saving("plots3D.root", "recreate");
+	TFile saving("plots.root", "recreate");
+/*
+	        for(int c=0; c<36; c++){
+			for(int p=0; p<8; p++){
+                		for(int s=0; s<384; s++){
+                           		myHisto_neg_l1[c]->Fill(p+1, s, hit_rate[0][0][c][p+1][s]);
+           	          		myHisto_neg_l2[c]->Fill(p+1, s, hit_rate[0][1][c][p+1][s]);
+                           		myHisto_pos_l1[c]->Fill(p+1, s, hit_rate[1][0][c][p+1][s]);
+                           		myHisto_pos_l2[c]->Fill(p+1, s, hit_rate[1][1][c][p+1][s]);
+				}
+			}
+                        myHisto_neg_l1[c]->Draw("COLZ");
+                        myHisto_neg_l1[c]->SetYTitle("Strip");
+			myHisto_neg_l1[c]->SetXTitle("Eta partition");
+                        myHisto_neg_l1[c]->SetZTitle("Hit Rate");
+			myHisto_neg_l1[c]->Write();
+	
+			myHisto_neg_l2[c]->Draw("COLZ");
+			myHisto_neg_l2[c]->SetYTitle("Strip");
+                        myHisto_neg_l2[c]->SetXTitle("Eta partition");
+                        myHisto_neg_l2[c]->SetZTitle("Hit Rate");
+                        myHisto_neg_l2[c]->Write();
+			
+		        myHisto_pos_l1[c]->Draw("COLZ");
+			myHisto_pos_l1[c]->SetYTitle("Strip");
+                        myHisto_pos_l1[c]->SetXTitle("Eta partition");
+                        myHisto_pos_l1[c]->SetZTitle("Hit Rate");
+               	        myHisto_pos_l1[c]->Write();
+
+			myHisto_pos_l2[c]->Draw("COLZ");
+			myHisto_pos_l2[c]->SetYTitle("Strip");
+                        myHisto_pos_l2[c]->SetXTitle("Eta partition");
+                        myHisto_pos_l2[c]->SetZTitle("Hit Rate");
+                        myHisto_pos_l2[c]->Write();
+
+	        }
+        
+		saving.Close();*/
 
                 for(int c=0; c<36; c++){
-                for(int s=0; s<384; s++){
-                           myHisto_neg_l1[c]->Fill(s, VFAT_position[s], hit_rate[0][0][c][s]);
-                           myHisto_neg_l2[c]->Fill(s, VFAT_position[s], hit_rate[0][1][c][s]);
-                           myHisto_pos_l1[c]->Fill(s, VFAT_position[s], hit_rate[1][0][c][s]);
-                           myHisto_pos_l2[c]->Fill(s, VFAT_position[s], hit_rate[1][1][c][s]);
+                        for(int p=0; p<8; p++){
+                                for(int s=0; s<384; s++){
+                                        myHisto_neg_l1[c]->Fill(s, hit_rate[0][0][c][p+1][s]);
+                                        myHisto_neg_l2[c]->Fill(s, hit_rate[0][1][c][p+1][s]);
+                                        myHisto_pos_l1[c]->Fill(s, hit_rate[1][0][c][p+1][s]);
+                                        myHisto_pos_l2[c]->Fill(s, hit_rate[1][1][c][p+1][s]);
                                 }
-           //                myHisto_neg_l1[c]->Draw("COLZ");
-                           myHisto_neg_l1[c]->SetXTitle("Strip");
-                           myHisto_neg_l1[c]->SetYTitle("VFAT");
-                           myHisto_neg_l1[c]->SetZTitle("Hit Rate");
-                           myHisto_neg_l1[c]->Write();
+                        }
+                        myHisto_neg_l1[c]->Draw("COLZ");
+                        myHisto_neg_l1[c]->SetXTitle("Strip");
+                        //myHisto_neg_l1[c]->SetXTitle("Eta partition");
+                        myHisto_neg_l1[c]->SetYTitle("Hit Rate");
+                        myHisto_neg_l1[c]->Write();
 
-                           myHisto_neg_l2[c]->SetXTitle("Strip");
-                           myHisto_neg_l2[c]->SetYTitle("VFAT");
-                           myHisto_neg_l2[c]->SetZTitle("Hit Rate");
-                           myHisto_neg_l2[c]->Write();
+                        myHisto_neg_l2[c]->Draw("COLZ");
+                        myHisto_neg_l2[c]->SetXTitle("Strip");
+                        //myHisto_neg_l2[c]->SetXTitle("Eta partition");
+                        myHisto_neg_l2[c]->SetYTitle("Hit Rate");
+                        myHisto_neg_l2[c]->Write();
 
-                           myHisto_pos_l1[c]->SetXTitle("Strip");
-                           myHisto_pos_l1[c]->SetYTitle("VFAT");
-                           myHisto_pos_l1[c]->SetZTitle("Hit Rate");
-                           myHisto_pos_l1[c]->Write();
+                        myHisto_pos_l1[c]->Draw("COLZ");
+                        myHisto_pos_l1[c]->SetXTitle("Strip");
+                        //myHisto_pos_l1[c]->SetXTitle("Eta partition");
+                        myHisto_pos_l1[c]->SetYTitle("Hit Rate");
+                        myHisto_pos_l1[c]->Write();
 
-                           myHisto_pos_l2[c]->SetXTitle("Strip");
-                           myHisto_pos_l2[c]->SetYTitle("VFAT");
-                           myHisto_pos_l2[c]->SetZTitle("Hit Rate");
-                           myHisto_pos_l2[c]->Write();
+                        myHisto_pos_l2[c]->Draw("COLZ");
+                        myHisto_pos_l2[c]->SetXTitle("Strip");
+                        //myHisto_pos_l2[c]->SetXTitle("Eta partition");
+                        myHisto_pos_l2[c]->SetYTitle("Hit Rate");
+                        myHisto_pos_l2[c]->Write();
 
-                     }
-
+                }
 
                 saving.Close();
 
-          //reset
-          memset(nhits, 0, sizeof(nhits));
+                                                                                                                                 
+
+	  //reset
+	  memset(nhits, 0, sizeof(nhits));
           nevents=0;
       }
    } //loop on events
@@ -282,41 +350,43 @@ void analysisClass::Loop()
         double sum[384]={0.};
         double media_hit_rate[384]={0.};
         double stemp[384]={0.};
-        double den = 144.;
+       //  double den = 144.; 
+       double den = 1152.;
         for(int e=0;e<2;e++){
                 for(int l=0;l<2;l++){
                         for(int c=0;c<36;c++){
-                                for(int p=0;p<384;p++){
-                                        sum[p]+=hit_rate[e][l][c][p];
+                                for(int p=0;p<8;p++){
+					for(int s=0;s<384;s++){
+                                        	sum[s]+=hit_rate[e][l][c][p][s];
                         //                stemp[p]=static_cast<double>(sum[p]);
-                 }
-            }
-       }
-}
-
-        for(int i=0;i<384;i++){
-                media_hit_rate[i]=sum[i]/den;
-                std::cout <<  "Strip" << " " << i+1 << "valore" << " "  << media_hit_rate[i] << std::endl;
+                 			}
+            			}
+       			}
+		}
+	}
+        for(int s=0;s<384;s++){
+                media_hit_rate[s]=sum[s]/den;
+                std::cout <<  "Strip" << " " << s << "valore" << " "  << media_hit_rate[s] << std::endl;
         }
 
         for(int e=0;e<2;e++){
                 for(int l=0;l<2;l++){
                         for(int c=0;c<36;c++){
-                                for(int p=0;p<384;p++){
-                                        if(((hit_rate[e][l][c][p] - media_hit_rate[p])/media_hit_rate[p]) > 1) {
-                                                std::cout << "Endcap: "<< e << " Layer: " << l << " Chamber: "<< c+1 << " VFAT: " << VFAT_position[p] << " Strip: " << p << std::endl;
-                                               // if(e==0)  std::cout << "GE11-M-" << c+1 << "L" << l+1 <<  " VFAT: " << VFAT_position[p] << " Strip: " << p << std::endl;
-                                               // if(e==1)  std::cout << "GE11-P-" << c+1 << "L" << l+1 <<  " VFAT: " << VFAT_position[p] << " Strip: " << p << std::endl;
-                                        }
-                                }
-                        }
-                }
+                                for(int p=0;p<8;p++){
+					for(int s=0;s<384;s++){
+                                        	if(((hit_rate[e][l][c][p][s] - media_hit_rate[s])/media_hit_rate[s]) > 1) {
+                                                	std::cout << "Endcap: "<< e << " Layer: " << l << " Chamber: "<< c+1 << " EtaPartition " << p+1 << " Strip: " << s << std::endl;
+                                               		// if(e==0)  std::cout << "GE11-M-" << c+1 << "L" << l+1 <<  " VFAT: " << VFAT_position[p] << " Strip: " << p << std::endl; 
+					       		// if(e==1)  std::cout << "GE11-P-" << c+1 << "L" << l+1 <<  " VFAT: " << VFAT_position[p] << " Strip: " << p << std::endl;
+						}
+                                	}
+                        	}
+                	}
+        	}	
+	}
 
-        }
-
-
-        fout->cd();
-        //write and close the file
-        fout->Write();
-        fout->Close();
+	fout->cd();
+	//write and close the file
+	fout->Write();
+	fout->Close();
 }
